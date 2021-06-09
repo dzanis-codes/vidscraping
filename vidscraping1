@@ -1,0 +1,33 @@
+import requests
+import bs4
+from bs4 import BeautifulSoup
+
+url = 'https://www6.vid.gov.lv/STRV/Data'
+payload = "IsPhysicalPerson=false&IsLegalPerson=true&Name=&Surname=&Code=40003053029&search=Atlas%C4%ABt&submit=yes"
+files = {
+    'IsPhysicalPerson': (None, 'false'),
+    'IsLegalPerson': (None, 'true'),
+    'Name': (None, None),
+    'Surname': (None, None),
+    'Code': (None, '40003053029'),
+    'search': (None, 'Atlasīt'),
+    'submit': (None, 'yes')
+
+}
+headers = {}
+
+r = requests.post(url, files = files, headers=headers)
+
+#print(r.text)
+soup = BeautifulSoup(r.text)
+tables = soup.findChildren('table')
+
+my_table = tables[0]
+
+rows = my_table.findChildren(['th', 'tr'])
+
+for row in rows:
+    cells = row.findChildren('td')
+    for cell in cells:
+        value = cell.string
+        print("The value in this cell is %s" % value)
