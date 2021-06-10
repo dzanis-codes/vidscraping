@@ -1,33 +1,134 @@
 import requests
 import bs4
 from bs4 import BeautifulSoup
+import sqlite3
+import time
+import csv
 
-url = 'https://www6.vid.gov.lv/STRV/Data'
-payload = "IsPhysicalPerson=false&IsLegalPerson=true&Name=&Surname=&Code=40003053029&search=Atlas%C4%ABt&submit=yes"
-files = {
-    'IsPhysicalPerson': (None, 'false'),
-    'IsLegalPerson': (None, 'true'),
-    'Name': (None, None),
-    'Surname': (None, None),
-    'Code': (None, '40003053029'),
-    'search': (None, 'Atlasīt'),
-    'submit': (None, 'yes')
+#create database connection and result table
+conn = sqlite3.connect('vid_str.db') 
+c = conn.cursor()
+c.execute('''CREATE TABLE IF NOT EXISTS results
+           (name_id INTEGER PRIMARY KEY, uznemums, legal_address, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)''')
+# Save (commit) the changes
+conn.commit()
 
-}
-headers = {}
 
-r = requests.post(url, files = files, headers=headers)
 
-#print(r.text)
-soup = BeautifulSoup(r.text)
-tables = soup.findChildren('table')
 
-my_table = tables[0]
 
-rows = my_table.findChildren(['th', 'tr'])
+def savaksana(reg_nr, legal_address):
+    url = 'https://www6.vid.gov.lv/STRV/Data'
+    payload = "IsPhysicalPerson=false&IsLegalPerson=true&Name=&Surname=&Code=40003053029&search=Atlas%C4%ABt&submit=yes"
+    files = {
+        'IsPhysicalPerson': (None, 'false'),
+        'IsLegalPerson': (None, 'true'),
+        'Name': (None, None),
+        'Surname': (None, None),
+        'Code': (None, reg_nr),
+        'search': (None, 'Atlasīt'),
+        'submit': (None, 'yes')
+    }
+    headers = {}
 
-for row in rows:
-    cells = row.findChildren('td')
-    for cell in cells:
-        value = cell.string
-        print("The value in this cell is %s" % value)
+    r = requests.post(url, files = files, headers=headers)
+    soup = BeautifulSoup(r.text, features="html5lib")
+    #print(soup)
+    info = soup.find("h2", {"class": "SDVHeader"})
+    info_text = info.text
+    check_if_closed = info_text.find('izslēgts')
+    check_if_works = info_text.find('nav apturēta')
+    #print(check_if_closed)
+    #print(check_if_works)
+    if check_if_closed > 0:
+        #print("closed")
+        name = 'na'
+        str_reg_nr = 'na'
+        address = 'na'
+        active_flag = 'na'
+        registered_date = 'na'
+        closed_date = 'na'
+        uznemums = reg_nr
+        info = info_text
+        ts = time.gmtime()
+        timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
+        company_closed = 'izslēgts no UR'
+        sql_entry = (uznemums, legal_address, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
+        enter_db(sql_entry)
+    else:
+        try:
+            registresana(soup, reg_nr, legal_address)
+        except Exception as e:
+            #sql_entry = (a, b, c) need legal address?
+            #print(check_if_works)
+            name = 'na'
+            str_reg_nr = 'na'
+            address = 'na'
+            active_flag = 'na'
+            registered_date = 'na'
+            closed_date = 'na'
+            uznemums = reg_nr
+            info = info_text
+            ts = time.gmtime()
+            timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
+            company_closed = 'izslēgts no UR'
+            sql_entry = (uznemums, legal_address, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
+            enter_db(sql_entry)
+            
+
+
+
+
+def registresana(soup, reg_nr, legal_address):
+    table = soup.find('table')
+
+    my_table = table.find('tbody')
+    #print(my_table)
+
+    rows = my_table.find_all('tr')
+    #print(rows)
+
+    for row in rows:
+        row_contents = []
+        cells = row.find_all('td')
+        for cell in cells:
+            value = cell.string
+            #print(value)
+
+            v_list = value.split()
+            clean_value = " ".join(v_list) 
+            row_contents.append(clean_value)
+        #print(row_contents) #debug mode :)
+        name = row_contents[0]
+        str_reg_nr = row_contents[1]
+        address = row_contents[2]
+        active_flag = row_contents[3]
+        registered_date = row_contents[4]
+        closed_date = row_contents[5]
+        uznemums = reg_nr
+        company_closed = 'nav izslēgts no UR'
+        ts = time.gmtime()
+        timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
+        sql_entry = (uznemums, legal_address, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
+        print(sql_entry)
+        enter_db(sql_entry)
+
+def enter_db(sql_entry):
+    #sql entry should consist of 10 items
+    c.execute("INSERT INTO results VALUES (null, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", sql_entry)
+    conn.commit()
+    
+
+#savaksana('40003299327', 'test')
+
+
+
+
+with open('test.txt') as csv_file:
+    csv_reader = csv.reader(csv_file, delimiter=',')
+
+    for row in csv_reader:
+        print(row)
+        reg_nr = row[0]
+        savaksana(reg_nr, 'test')
+        time.sleep(3)
