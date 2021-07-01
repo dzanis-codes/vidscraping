@@ -21,24 +21,6 @@ active_flag = 'na'
 registered_date = 'na'
 closed_date = 'na'
 
-#;šo keisu vajag atrunāt. izslēgts un vairs nedarbojas, pretstatā darbojas
-#40203011102 un 40203014024 tiem vajag jaunu pazīmi laikam par saimn darbibu
-#apakshgadijums - vairaki lemumi: 40003961039
-#shim atjaunota darbiba 40003788741
-#un pavisam svaigs keiss 40103161907
-
-
-# un shis tad ir interesants keiss. darbiba aptureta, bet nav izslegts un ir strukturvienibas: 40003964321 un 40103556401
-
-# un darbiba aptureta; izslegts no registra ir strukturvieniba: 40003754995
-
-
-
-#algroitms, meklee desctable, ja atrod, tad funkcija 1, ja neatrod funkcija 2
-#funkcija 1, meklee Izslēgts no Nodokļu maksātāju reģistra, ja atrod tad saglabaa nulliites, bet ja neatrod, tad [funkcija3?] meklee strukturvienibu sarakstu un to saglaba. Papildus atrod ari vai nu datumu ar kuru ir atjaunota darbiba, vai ari to ka nav atjaunota
-
-
-#funckija2 esosa
 
 
 
@@ -56,7 +38,7 @@ def savaksana(reg_nr):
     }
     headers = {}
 
-    r = requests.post(url, files = files, headers=headers)
+    r = requests.post(url, data = files, headers=headers)
     soup = BeautifulSoup(r.text, features="html5lib")
     #print(soup)
 
