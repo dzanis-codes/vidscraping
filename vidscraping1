@@ -7,10 +7,10 @@ import csv
 import re
 
 #create database connection and result table
-conn = sqlite3.connect('vid_str.db') 
+conn = sqlite3.connect('vid_str2.db') 
 c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS results
-           (name_id INTEGER PRIMARY KEY, uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)''')
+           (name_id INTEGER PRIMARY KEY, uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, status, timestamp)''')
 # Save (commit) the changes
 conn.commit()
 
@@ -69,29 +69,38 @@ def savaksana(reg_nr):
         print(check2)
 
         if check2 == None:
-            registresana(soup, reg_nr)
-            #pilna strukturvienibu iergeistresanas funkcija
+            #būtu labi ja šeit tiktu pievienota informācija, ka šim ir apturēta saimn.darbība, bet tas ir optional
+
+            try:
+                registresana(soup, reg_nr)
+            except Exception as e:
+
+                print(e)
+ 
+                uznemums = reg_nr
+
+                ts = time.gmtime()
+                timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
+                company_closed = 'Nav struktūrvienību'
+                sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
+                enter_db(sql_entry)
             
         else:
             #pieregistre to ka uznemums beidzies un nevajag sturkturvienibu
-            pass
+            uznemums = reg_nr
 
-
-
-        uznemums = reg_nr
-
-        ts = time.gmtime()
-        timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
-        company_closed = 'bijusi pauze darbībā'
-        sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
-        enter_db(sql_entry)
+            ts = time.gmtime()
+            timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
+            company_closed = 'Izslēgts no UR'
+            sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
+            enter_db(sql_entry)
     else:
 
         info = soup.find("h2", {"class": "SDVHeader"})
         info_text = info.text
-        check_if_closed = info_text.find('izslēgts')
+        check_if_closed = info_text.find('Izslēgts')
         check_if_works = info_text.find('nav apturēta')
-        #print(check_if_closed)
+        print(check_if_closed)
         print(check_if_works)
         if check_if_closed > 0:
             print("closed")
@@ -107,12 +116,13 @@ def savaksana(reg_nr):
                 registresana(soup, reg_nr)
             except Exception as e:
             #sql_entry = (a, b, c) need legal address?
+                print(e)
                 print(check_if_works)
                 uznemums = reg_nr
 
                 ts = time.gmtime()
                 timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
-                company_closed = 'izslēgts no UR'
+                company_closed = 'Nav struktūrvienību'
                 sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
                 enter_db(sql_entry)
             
