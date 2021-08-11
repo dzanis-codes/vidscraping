@@ -6,6 +6,7 @@ import time
 import csv
 import re
 import sys
+import traceback
 
 #create database connection and result table
 
@@ -167,15 +168,26 @@ def enter_db(sql_entry):
 
 #savaksana('40103504912', 'test')
 
+count = 1
+while count < 190000
+    try:
+            with open('list.txt') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
 
-
-with open('list.txt') as csv_file:
-    csv_reader = csv.reader(csv_file, delimiter=',')
-
-    for row in csv_reader:
-        print(row)
-        reg_nr = row[0]
-        savaksana(reg_nr)
-        time.sleep(3)
+            for row in csv_reader:
+                print(row)
+                reg_nr = row[0]
+                savaksana(reg_nr)
+                time.sleep(3)
+                count += 1
+    except Exception as e:
+        error_path = '/LBApp_log/vidscraping.txt'
+        f = open(error_path, 'a+')
+        f.write('\n %s \n' % e)
+        tb = traceback.TracebackException.from_exception(e)
+        f.write('\n'.join(tb.stack.format()))            
+        f.close()
+        time.sleep(10)
+        pass     
 
 sys.exit()
