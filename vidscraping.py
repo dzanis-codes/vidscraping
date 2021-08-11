@@ -171,7 +171,7 @@ def enter_db(sql_entry):
 count = 1
 while count < 190000:
     try:
-            with open('list.txt') as csv_file:
+        with open('list.txt') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
 
             for row in csv_reader:
