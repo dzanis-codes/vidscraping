@@ -5,9 +5,15 @@ import sqlite3
 import time
 import csv
 import re
+import sys
 
 #create database connection and result table
-conn = sqlite3.connect('vid_str2.db') 
+
+
+path = '/LBData/VID_STR/vid_str.db'
+conn = sqlite3.connect(path)
+
+
 c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS results
            (name_id INTEGER PRIMARY KEY, uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, status, timestamp)''')
@@ -22,8 +28,6 @@ registered_date = 'na'
 closed_date = 'na'
 
 
-
-
 def savaksana(reg_nr):
     url = 'https://www6.vid.gov.lv/STRV/Data'
 
@@ -33,25 +37,25 @@ def savaksana(reg_nr):
         'Name': (None, None),
         'Surname': (None, None),
         'Code': (None, reg_nr),
-        'search': (None, 'Atlasīt'),
+        'search': (None, 'AtlasÄ«t'),
         'submit': (None, 'yes')
     }
     headers = {}
 
     r = requests.post(url, data = files, headers=headers)
-    soup = BeautifulSoup(r.text, features="html5lib")
+    soup = BeautifulSoup(r.text, features="html.parser")
     #print(soup)
 
-    k = soup.find(text=re.compile("darbības apturēšanu"))
+    k = soup.find(text=re.compile("darbÄ«bas apturÄ“Åanu"))
     print(k)
     if k != None:
-        #šeit vajag divus apakšscenārijus. attiecīgi - vai nu ir tā papildus tabula ar struktūrvienībām vai nav vispār.
-        check2 = soup.find(text=re.compile("Izslēgts no Nodokļu maksātāju"))
-        print("vai atrada vai ir izslēgts:")
+        #Åeit vajag divus apakÅscenÄrijus. attiecÄ«gi - vai nu ir tÄ papildus tabula ar struktÅ«rvienÄ«bÄm vai nav vispÄr.
+        check2 = soup.find(text=re.compile("IzslÄ“gts no NodokÄ¼u maksÄtÄju"))
+        print("vai atrada vai ir izslÄ“gts:")
         print(check2)
 
         if check2 == None:
-            #būtu labi ja šeit tiktu pievienota informācija, ka šim ir apturēta saimn.darbība, bet tas ir optional
+            #bÅ«tu labi ja Åeit tiktu pievienota informÄcija, ka Åim ir apturÄ“ta saimn.darbÄ«ba, bet tas ir optional
 
             try:
                 registresana(soup, reg_nr)
@@ -63,7 +67,7 @@ def savaksana(reg_nr):
 
                 ts = time.gmtime()
                 timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
-                company_closed = 'Nav struktūrvienību'
+                company_closed = 'Nav struktÅ«rvienÄ«bu'
                 sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
                 enter_db(sql_entry)
             
@@ -73,15 +77,15 @@ def savaksana(reg_nr):
 
             ts = time.gmtime()
             timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
-            company_closed = 'Izslēgts no UR'
+            company_closed = 'IzslÄ“gts no UR'
             sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
             enter_db(sql_entry)
     else:
 
         info = soup.find("h2", {"class": "SDVHeader"})
         info_text = info.text
-        check_if_closed = info_text.find('Izslēgts')
-        check_if_works = info_text.find('nav apturēta')
+        check_if_closed = info_text.find('IzslÄ“gts')
+        check_if_works = info_text.find('nav apturÄ“ta')
         print(check_if_closed)
         print(check_if_works)
         if check_if_closed > 0:
@@ -90,7 +94,7 @@ def savaksana(reg_nr):
 
             ts = time.gmtime()
             timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
-            company_closed = 'izslēgts no UR'
+            company_closed = 'izslÄ“gts no UR'
             sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
             enter_db(sql_entry)
         else:
@@ -104,7 +108,7 @@ def savaksana(reg_nr):
 
                 ts = time.gmtime()
                 timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
-                company_closed = 'Nav struktūrvienību'
+                company_closed = 'Nav struktÅ«rvienÄ«bu'
                 sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
                 enter_db(sql_entry)
             
@@ -114,7 +118,7 @@ def savaksana(reg_nr):
 
 def registresana(soup, reg_nr):
 
-    find_header = soup.find_all('h2', text=re.compile('Informācija par nodokļu maksātāja struktūrvienībām'))[0]
+    find_header = soup.find_all('h2', text=re.compile('InformÄcija par nodokÄ¼u maksÄtÄja struktÅ«rvienÄ«bÄm'))[0]
     print(find_header)
     correct_table = find_header.find_next_sibling()
     #print(correct_table)
@@ -148,7 +152,7 @@ def registresana(soup, reg_nr):
         registered_date = row_contents[4]
         closed_date = row_contents[5]
         uznemums = reg_nr
-        company_closed = 'nav izslēgts no UR'
+        company_closed = 'nav izslÄ“gts no UR'
         ts = time.gmtime()
         timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
         sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
@@ -165,7 +169,7 @@ def enter_db(sql_entry):
 
 
 
-with open('test.txt') as csv_file:
+with open('list.txt') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
 
     for row in csv_reader:
@@ -173,3 +177,5 @@ with open('test.txt') as csv_file:
         reg_nr = row[0]
         savaksana(reg_nr)
         time.sleep(3)
+
+sys.exit()
