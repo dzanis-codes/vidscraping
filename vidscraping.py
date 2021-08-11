@@ -38,7 +38,7 @@ def savaksana(reg_nr):
         'Name': (None, None),
         'Surname': (None, None),
         'Code': (None, reg_nr),
-        'search': (None, 'AtlasÄ«t'),
+        'search': (None, 'Atlasīt'),
         'submit': (None, 'yes')
     }
     headers = {}
@@ -47,12 +47,12 @@ def savaksana(reg_nr):
     soup = BeautifulSoup(r.text, features="html.parser")
     #print(soup)
 
-    k = soup.find(text=re.compile("darbÄ«bas apturÄ“Åanu"))
+    k = soup.find(text=re.compile("darbības apturēšanu"))
     print(k)
     if k != None:
         #Åeit vajag divus apakÅscenÄrijus. attiecÄ«gi - vai nu ir tÄ papildus tabula ar struktÅ«rvienÄ«bÄm vai nav vispÄr.
-        check2 = soup.find(text=re.compile("IzslÄ“gts no NodokÄ¼u maksÄtÄju"))
-        print("vai atrada vai ir izslÄ“gts:")
+        check2 = soup.find(text=re.compile("Izslēgts no Nodokļu maksātāju"))
+        print("vai atrada vai ir izslēgts:")
         print(check2)
 
         if check2 == None:
@@ -68,7 +68,7 @@ def savaksana(reg_nr):
 
                 ts = time.gmtime()
                 timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
-                company_closed = 'Nav struktÅ«rvienÄ«bu'
+                company_closed = 'Nav struktūrvienību'
                 sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
                 enter_db(sql_entry)
             
@@ -78,15 +78,15 @@ def savaksana(reg_nr):
 
             ts = time.gmtime()
             timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
-            company_closed = 'IzslÄ“gts no UR'
+            company_closed = 'Izslēgts no UR'
             sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
             enter_db(sql_entry)
     else:
 
         info = soup.find("h2", {"class": "SDVHeader"})
         info_text = info.text
-        check_if_closed = info_text.find('IzslÄ“gts')
-        check_if_works = info_text.find('nav apturÄ“ta')
+        check_if_closed = info_text.find('Izslēgts')
+        check_if_works = info_text.find('nav apturēta')
         print(check_if_closed)
         print(check_if_works)
         if check_if_closed > 0:
@@ -95,7 +95,7 @@ def savaksana(reg_nr):
 
             ts = time.gmtime()
             timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
-            company_closed = 'izslÄ“gts no UR'
+            company_closed = 'izslēgts no UR'
             sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
             enter_db(sql_entry)
         else:
@@ -109,7 +109,7 @@ def savaksana(reg_nr):
 
                 ts = time.gmtime()
                 timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
-                company_closed = 'Nav struktÅ«rvienÄ«bu'
+                company_closed = 'Nav struktūrvienību'
                 sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
                 enter_db(sql_entry)
             
@@ -119,7 +119,7 @@ def savaksana(reg_nr):
 
 def registresana(soup, reg_nr):
 
-    find_header = soup.find_all('h2', text=re.compile('InformÄcija par nodokÄ¼u maksÄtÄja struktÅ«rvienÄ«bÄm'))[0]
+    find_header = soup.find_all('h2', text=re.compile('Informācija par nodokļu maksātāja struktūrvienībām'))[0]
     print(find_header)
     correct_table = find_header.find_next_sibling()
     #print(correct_table)
@@ -153,7 +153,7 @@ def registresana(soup, reg_nr):
         registered_date = row_contents[4]
         closed_date = row_contents[5]
         uznemums = reg_nr
-        company_closed = 'nav izslÄ“gts no UR'
+        company_closed = 'nav izslēgts no UR'
         ts = time.gmtime()
         timestamp = (time.strftime("%Y-%m-%d %H:%M:%S", ts))
         sql_entry = (uznemums, name, str_reg_nr, address, active_flag, registered_date, closed_date, company_closed, timestamp)
