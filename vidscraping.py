@@ -180,7 +180,8 @@ while count < 190000:
             for row in csv_reader:
                 print(row)
                 if csv_reader.line_num < int(row_num):
-                    #print("checked")
+                    print("already checked")
+           
                 else:
                     #print("new")
                     reg_nr = row[0]
