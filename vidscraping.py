@@ -170,12 +170,14 @@ while count < 190000:
     try:
         c.execute("SELECT uznemums FROM results WHERE timestamp = (SELECT MAX(timestamp) FROM results)")
         last_checked = c.fetchone()[0] 
-        with open('list.txt') as o:
+        print(last_checked)
+        with open('/LBApp/list.txt') as o:
             myData = csv.reader(o)
             for row in myData:
                 if row[0] == str(last_checked):
                     row_num = myData.line_num
-        with open('list.txt') as csv_file:
+            print(row_num)
+        with open('/LBApp/list.txt') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
                 print(row)
