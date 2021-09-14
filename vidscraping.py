@@ -173,7 +173,8 @@ while count < 190000:
         print(last_checked)
         with open('/LBApp/list.txt') as o:
             myData = csv.reader(o)
-            for row in myData:
+            row_num = 0
+                      for row in myData:
                 if row[0] == str(last_checked):
                     row_num = myData.line_num
             print(row_num)
